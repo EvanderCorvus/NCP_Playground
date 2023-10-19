@@ -12,5 +12,11 @@ def policy(q_values, epsilon):
     return angle
 
 
-def update_deepQ(agent, target_agent):
+def update_deepQ(agent, target_agent, transition):
     pass
+
+def update_target_agent(agent, target_agent, polyak_tau):
+    with tr.no_grad():
+        for p, p_target in zip(agent.parameters(), target_agent.parameters()):
+            p_target.data.mul_(polyak_tau)
+            p_target.data.add_((1-polyak_tau) * p.data)
