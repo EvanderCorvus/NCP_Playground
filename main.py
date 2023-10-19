@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 from deap import base, creator, tools, algorithms
 from utils import *
 from agents import DeepQ_LTC_NCP, policy
-from concurrent.futures import ProcessPoolExecutor
+from environment import BoxEnvironment
+# from concurrent.futures import ProcessPoolExecutor
 
 # Initialize Hyperparameters and DEAP toolbox
 hyperparams = Hyperparameters()
 toolbox = init_toolbox(hyperparams)
+# environment = BoxEnvironment(hyperparams)
 
 
 # with ProcessPoolExecutor() as executor:
@@ -19,6 +21,23 @@ toolbox = init_toolbox(hyperparams)
 
 #ToDo: Decay epsilon ?
 
+# episode should return an array of all the cumulative rewards for each individual
+def episode(n_steps, agent):
+    pass
+
+def episode_batch(individual):
+    cumulative_reward = np.zeros((hyperparams.population_size, hyperparams.agent_batch_size))
+    agent = DeepQ_LTC_NCP(individual)
+
+    for _ in range(hyperparams.episode_batch_length):
+        cumulative_reward += episode(hyperparams.n_steps)
+    return cumulative_reward
+
+def simulation(n_generations):
+    population = toolbox.population(hyperparams.population_size)
+
+    fitness = map(episode_batch, population)
+    
 
 
 
