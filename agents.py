@@ -30,13 +30,3 @@ class DeepQ_Population(nn.Module):
         super(DeepQ_Population, self).__init__()
         pass
 
-
-def policy(q_values, epsilon):
-    if np.random.random() < epsilon:
-        action_idx = np.random.randint(len(q_values))
-    else:
-        action_idx = tr.argmax(q_values).item()
-
-    angle = 2*np.pi*action_idx/len(q_values)
-
-    return angle

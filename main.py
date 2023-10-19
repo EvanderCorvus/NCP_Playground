@@ -2,11 +2,16 @@ import numpy as np
 import torch as tr
 from ncps.torch import LTC
 from ncps.wirings import AutoNCP, NCP
-import matplotlib.pyplot as plt
 from deap import base, creator, tools, algorithms
 from utils import *
-from agents import DeepQ_LTC_NCP, policy
+from agents import DeepQ_LTC_NCP
+from agent_utils import policy, update_deepQ
 from environment import BoxEnvironment
+
+device = tr.device('cuda' if tr.cuda.is_available() else 'cpu')
+tr.autograd.set_detect_anomaly(True)
+tr.set_default_tensor_type(tr.FloatTensor)
+
 # from concurrent.futures import ProcessPoolExecutor
 
 # Initialize Hyperparameters and DEAP toolbox
@@ -22,12 +27,19 @@ toolbox = init_toolbox(hyperparams)
 #ToDo: Decay epsilon ?
 
 # episode should return an array of all the cumulative rewards for each individual
-def episode(n_steps, agent):
+def episode(agent, target_agent):
     pass
 
 def episode_batch(individual):
-    cumulative_reward = np.zeros((hyperparams.population_size, hyperparams.agent_batch_size))
-    agent = DeepQ_LTC_NCP(individual)
+    cumulative_reward = np.zeros((hyperparams.population_size,
+                                hyperparams.agent_batch_size)
+                            )
+    # Initialize the agent and target agent
+    agent = DeepQ_LTC_NCP(individual).to(device)
+    target_agent = DeepQ_LTC_NCP(individual).to(device)
+    target_agent.load_state_dict(agent.state_dict())
+    for p in target_agent.parameters():
+        p.requires_grad = False
 
     for _ in range(hyperparams.episode_batch_length):
         cumulative_reward += episode(hyperparams.n_steps)
