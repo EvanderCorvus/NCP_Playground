@@ -45,7 +45,8 @@ def init_toolbox(hyperparams):
 
     toolbox = base.Toolbox()
 
-    toolbox.register('individual', init_genome)
+    toolbox.register('individual', tools.initIterate, creator.Individual, lambda: init_genome()
+                    )
     toolbox.register('population', tools.initRepeat,
                     list, toolbox.individual,
                     n = hyperparams.population_size
@@ -59,4 +60,5 @@ def init_toolbox(hyperparams):
                     k = 0.5*hyperparams.population_size,
                     fit_attr = 'fitness'
                 )
+    #ToDo: register 'mate'
     return toolbox

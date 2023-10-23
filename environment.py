@@ -50,7 +50,7 @@ class BoxEnvironment:
 
         #thermal noise
         noise = np.random.normal(np.zeros(self.agent_batch_size), np.ones(self.agent_batch_size))
-        theta = theta + vorticity*self.dt + np.sqrt(self.dt)*self.hyperparams.characteristic_length*noise
+        theta = theta + vorticity*self.hyperparams.dt + np.sqrt(self.dt)*self.hyperparams.characteristic_length*noise
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
