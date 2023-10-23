@@ -39,6 +39,14 @@ def init_genome():
     ]
     return genome
 
+def discrete_gaussian_mutation(individual, mu, sigma, indpb):
+        tools.mutGaussian(individual, mu, sigma, indpb)
+        for i in range(len(individual)):
+            individual[i] = int(round(individual[i]))
+
+def void_mating(ind1,ind2):
+    return ind1, ind2
+
 def init_toolbox(hyperparams):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -51,14 +59,15 @@ def init_toolbox(hyperparams):
                     list, toolbox.individual,
                     n = hyperparams.population_size
                 )
-    toolbox.register('mutate', tools.mutUniformInt,
-                    low = 4,
-                    up = 50,
+    toolbox.register('mutate', discrete_gaussian_mutation,
+                    mu = 0,
+                    sigma = hyperparams.mutation_sigma,
                     indpb = hyperparams.mutation_rate
                 )
     toolbox.register('select', tools.selBest,
                     k = 0.5*hyperparams.population_size,
                     fit_attr = 'fitness'
                 )
-    #ToDo: register 'mate'
+    toolbox.register('mate', void_mating)
+
     return toolbox

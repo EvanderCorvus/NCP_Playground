@@ -2,6 +2,7 @@ import numpy as np
 import torch as tr
 from utils import *
 from agents import DeepQ_LTC_NCP
+from deap import algorithms
 from agent_utils import policy, update_deepQ, update_target_agent
 from environment import BoxEnvironment
 
@@ -61,13 +62,19 @@ def episode_batch(individual):
         cumulative_reward += episode(agent, target_agent)
     return (cumulative_reward,) # Has to be a tuple
 
+
+
+
 toolbox.register('evaluate', episode_batch)
 
+final_pop = algorithms.eaSimple(toolbox.population(),toolbox,
+                                cxpb = 0, mutpb = hyperparams.mutation_rate,
+                                ngen = hyperparams.n_generations, verbose = False
+                            )
 
+# def simulation(n_generations):
+#     population = toolbox.population(hyperparams.population_size)
 
-def simulation(n_generations):
-    population = toolbox.population(hyperparams.population_size)
-
-    fitness = map(episode_batch, population)
+#     fitness = map(episode_batch, population)
     
 

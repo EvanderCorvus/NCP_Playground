@@ -4,9 +4,7 @@ hyperparams = Hyperparameters()
 toolbox = init_toolbox(hyperparams)
 
 ind = toolbox.individual()
-print(ind.fitness.valid)
-
-
+print(int(round(4.5)))
 
 
 
@@ -49,4 +47,4 @@ plt.legend(handles=legend_handles, loc="upper right")
 
 plt.tight_layout()
 plt.show()
-'''^1   
+'''
