@@ -25,7 +25,8 @@ environment = BoxEnvironment(hyperparams).to(device)
 #ToDo: Decay epsilon ?
 
 # episode should return an array of all the cumulative rewards for each individual
-def episode(agent, target_agent):
+def episode(agent, target_agent, optimizer):
+    agent.optimizer.zero_grad()
     environment.reset(hyperparams, device)
     state = environment.state
     h0 = None
@@ -35,11 +36,13 @@ def episode(agent, target_agent):
         action = policy(q_values, hyperparams.epsilon)
         next_state, reward, done = environment.step(action)
         update_deepQ(agent, target_agent, 
-                    (state, action, reward, next_state, done)
+                    (q_values, h, reward, next_state, done)
                     )
         update_target_agent(agent, target_agent,
                             hyperparams.polyak_tau
                         )
+        
+        optimizer.step()
         h = h.detach()
         h0 = h
         state = next_state
@@ -53,13 +56,14 @@ def episode_batch(individual):
                             )
     # Initialize the agent and target agent
     agent = DeepQ_LTC_NCP(individual).to(device)
+    optimizer = tr.optim.Adam(agent.parameters(), lr = hyperparams.lr)
     target_agent = DeepQ_LTC_NCP(individual).to(device)
     target_agent.load_state_dict(agent.state_dict())
     for p in target_agent.parameters():
         p.requires_grad = False
 
     for _ in range(hyperparams.episode_batch_length):
-        cumulative_reward += episode(agent, target_agent)
+        cumulative_reward += episode(agent, target_agent, optimizer)
     return (cumulative_reward,) # Has to be a tuple
 
 

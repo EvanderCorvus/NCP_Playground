@@ -1,5 +1,5 @@
 import numpy as np
-
+import torch as tr
 def force(x,y,U0,type='mexican'):
     if type == 'mexican':
         r = np.sqrt(x**2+y**2)
@@ -10,13 +10,13 @@ def force(x,y,U0,type='mexican'):
         F_y = fr*y
         return F_x,F_y
 
-    
+# ToDo: Move everything to GPU
 class Box():
-    def __init__(self, width, height, center=None):
+    def __init__(self, width, height, center=None, device = 'cuda'):
         self.width = width
         self.height = height
         if center is None:
-            self.center = np.zeros(2)
+            self.center = tr.zeros(2).to(device)
             self.centerX = 0
             self.centerY = 0
         else:

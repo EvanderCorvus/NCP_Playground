@@ -12,7 +12,7 @@ def sinusoidal_flow(x, t, hyperparams):
 
     return F_x, F_y
 
-def calc_vorticity(x, t, hyperparams):
+def vorticity(x, t, hyperparams):
     omega = hyperparams.omega
     k = hyperparams.k
     U0 = hyperparams.U0
@@ -36,21 +36,18 @@ class BoxEnvironment:
         # self.agent_batch_size = hyperparams.agent_batch_size
         # self.dt = hyperparams.dt
         # self.characteristic_length = hyperparams.characteristic_length
-        # 
+
         self.hyperparams = hyperparams
 
-    #ToDo: state to CPU!
+    
     def step(self, action, t):
         x, y = self.state[:,0], self.state[:,1]
         theta = action[:,0]
         F_x, F_y = self.state[:,2], self.state[:,3]
-
-        # I think this implementation is wrong, the force is always of the step before, not the current one!
-        vorticity = calc_vorticity(x, t)
-
+        
         #thermal noise
         noise = np.random.normal(np.zeros(self.agent_batch_size), np.ones(self.agent_batch_size))
-        theta = theta + vorticity*self.hyperparams.dt + np.sqrt(self.dt)*self.hyperparams.characteristic_length*noise
+        theta = theta + vorticity(x,t)*self.hyperparams.dt + np.sqrt(self.hyperparams.sdt)*self.hyperparams.characteristic_length*noise
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
@@ -60,7 +57,7 @@ class BoxEnvironment:
         v_y = e_y + F_y
         y_new = y + v_y*self.hyperparams.dt
 
-        F_x_new, F_y_new, _ = sinusoidal_flow(x_new, y_new, self.U0)
+        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.hyperparams.U0)
 
         inside_space = self.space.contains(x_new, y_new)
 

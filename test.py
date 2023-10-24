@@ -4,7 +4,7 @@ hyperparams = Hyperparameters()
 toolbox = init_toolbox(hyperparams)
 
 ind = toolbox.individual()
-print(int(round(4.5)))
+print((0,1)[0])
 
 
 
