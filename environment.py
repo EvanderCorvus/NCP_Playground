@@ -5,17 +5,17 @@ from environment_utils import *
 def sinusoidal_flow(x, t, hyperparams):
     omega = hyperparams.omega
     k = hyperparams.k
-    U0 = hyperparams.U0
+    U0 = hyperparams.u0
 
     F_y = U0*tr.sin(k*x + omega*t)
     F_x = tr.zeros(F_y.shape)
 
     return F_x, F_y
 
-def calc_vorticity(x, t, hyperparams):
+def vorticity(x, t, hyperparams):
     omega = hyperparams.omega
     k = hyperparams.k
-    U0 = hyperparams.U0
+    U0 = hyperparams.u0
 
     vorticity = U0*k*tr.cos(k*x + omega*t)
     return vorticity
@@ -30,27 +30,20 @@ class BoxEnvironment:
         self.state = None
         self.space = Box(hyperparams.width, hyperparams.height)
         self.goal = Circle2D(hyperparams.goal_radius, 
-                            np.array([hyperparams.goal_x, hyperparams.goal_y])
+                            tr.tensor([hyperparams.goal_x, hyperparams.goal_y])
                         )
-        # self.population_size = hyperparams.population_size
-        # self.agent_batch_size = hyperparams.agent_batch_size
-        # self.dt = hyperparams.dt
-        # self.characteristic_length = hyperparams.characteristic_length
-        # 
         self.hyperparams = hyperparams
+        # ToDo: Store hyperparam variables as attributes and as tensors in GPU!
 
-    #ToDo: state to CPU!
     def step(self, action, t):
         x, y = self.state[:,0], self.state[:,1]
-        theta = action[:,0]
+        theta = action
         F_x, F_y = self.state[:,2], self.state[:,3]
-
-        # I think this implementation is wrong, the force is always of the step before, not the current one!
-        vorticity = calc_vorticity(x, t)
-
+        
         #thermal noise
-        noise = np.random.normal(np.zeros(self.agent_batch_size), np.ones(self.agent_batch_size))
-        theta = theta + vorticity*self.dt + np.sqrt(self.dt)*self.hyperparams.characteristic_length*noise
+        noise = tr.normal(tr.zeros(self.hyperparams.agent_batch_size),
+                          tr.ones(self.hyperparams.agent_batch_size))
+        theta = theta + vorticity(x,t, self.hyperparams)*self.hyperparams.dt + np.sqrt(self.hyperparams.dt)*self.hyperparams.characteristic_length*noise
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
@@ -60,13 +53,15 @@ class BoxEnvironment:
         v_y = e_y + F_y
         y_new = y + v_y*self.hyperparams.dt
 
-        F_x_new, F_y_new, _ = sinusoidal_flow(x_new, y_new, self.U0)
+        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.hyperparams.u0)
 
         inside_space = self.space.contains(x_new, y_new)
 
-
-        self.state[:,0][inside_space] = x_new[inside_space]
-        self.state[:,1][inside_space] = y_new[inside_space]
+        # No-slip boundary
+        self.state[:,0] = tr.clamp(x_new, min=-self.hyperparams.width/2,
+                                   max=self.hyperparams.width/2)
+        self.state[:,1] = tr.clamp(y_new, min=-self.hyperparams.height/2,
+                                   max=self.hyperparams.height/2)
         self.state[:,2] = F_x_new
         self.state[:,3] = F_y_new
         self.state[:,4] = theta
@@ -77,9 +72,9 @@ class BoxEnvironment:
     
     def reward(self, dt, inside_space):
         # Compute reward
-        not_inside_space = np.logical_not(inside_space)
-        reward = -dt*np.ones(self.state.shape[0])
-        wincondition = np.array(self.goal_check()).astype(int)
+        not_inside_space = tr.logical_not(inside_space)
+        reward = -dt*tr.ones(self.state.shape[0])
+        wincondition = self.goal_check()
         reward += wincondition*1
         reward -= not_inside_space*0.5
 
@@ -93,8 +88,7 @@ class BoxEnvironment:
 
 
     def reset(self, hyperparams, device):
-        self.state = tr.zeros((hyperparams.population_size,
-                               hyperparams.agent_batch_size,
-                               hyperparams.state_dim)
+        self.state = tr.zeros(hyperparams.agent_batch_size,
+                                hyperparams.state_dim
                             ).to(device)
-        self.state[:,:,0] = -0.5*tr.ones((hyperparams.state_dim))
+        self.state[:,0] = -0.5*tr.ones((hyperparams.agent_batch_size))

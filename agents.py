@@ -20,8 +20,9 @@ class DeepQ_LTC_NCP(nn.Module):
 
     def forward(self, state, h0 = None):
         x = self.fc(state)
+        x = x.unsqueeze(1)
         x, h = self.rnn(x, h0)
-        return x, h
+        return x.squeeze(1), h
         
 
 # This Class implements a parallel forward operation for the entire population
