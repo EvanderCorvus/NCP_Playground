@@ -32,14 +32,8 @@ class BoxEnvironment:
         self.goal = Circle2D(hyperparams.goal_radius, 
                             np.array([hyperparams.goal_x, hyperparams.goal_y])
                         )
-        # self.population_size = hyperparams.population_size
-        # self.agent_batch_size = hyperparams.agent_batch_size
-        # self.dt = hyperparams.dt
-        # self.characteristic_length = hyperparams.characteristic_length
-
         self.hyperparams = hyperparams
 
-    
     def step(self, action, t):
         x, y = self.state[:,0], self.state[:,1]
         theta = action[:,0]
@@ -61,9 +55,11 @@ class BoxEnvironment:
 
         inside_space = self.space.contains(x_new, y_new)
 
-
-        self.state[:,0][inside_space] = x_new[inside_space]
-        self.state[:,1][inside_space] = y_new[inside_space]
+        # No-slip boundary
+        self.state[:,0] = tr.clamp(x_new, min=-self.hyperparams.width/2,
+                                   max=self.hyperparams.width/2)
+        self.state[:,1] = tr.clamp(y_new, min=-self.hyperparams.height/2,
+                                   max=self.hyperparams.height/2)
         self.state[:,2] = F_x_new
         self.state[:,3] = F_y_new
         self.state[:,4] = theta
@@ -74,9 +70,9 @@ class BoxEnvironment:
     
     def reward(self, dt, inside_space):
         # Compute reward
-        not_inside_space = np.logical_not(inside_space)
-        reward = -dt*np.ones(self.state.shape[0])
-        wincondition = np.array(self.goal_check()).astype(int)
+        not_inside_space = tr.logical_not(inside_space)
+        reward = -dt*tr.ones(self.state.shape[0])
+        wincondition = self.goal_check()
         reward += wincondition*1
         reward -= not_inside_space*0.5
 
@@ -90,8 +86,7 @@ class BoxEnvironment:
 
 
     def reset(self, hyperparams, device):
-        self.state = tr.zeros((hyperparams.population_size,
-                               hyperparams.agent_batch_size,
-                               hyperparams.state_dim)
+        self.state = tr.zeros(hyperparams.agent_batch_size,
+                                hyperparams.state_dim
                             ).to(device)
-        self.state[:,:,0] = -0.5*tr.ones((hyperparams.state_dim))
+        self.state[:,0] = -0.5*tr.ones((hyperparams.state_dim))
