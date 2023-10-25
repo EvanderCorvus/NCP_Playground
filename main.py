@@ -46,7 +46,9 @@ def episode(agent, target_agent, optimizer):
         h = h.detach()
         h0 = h
         state = next_state
-        total_reward += reward
+
+        # Average reward over the batch
+        total_reward += reward.mean().item()
         if done: break
     return total_reward
 
@@ -70,8 +72,11 @@ def episode_batch(individual):
 
 
 toolbox.register('evaluate', episode_batch)
+stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+stats.register('mean', np.mean)
+stats.register('std', np.std)
 
-final_pop = algorithms.eaSimple(toolbox.population(),toolbox,
+final_pop, logbook = algorithms.eaSimple(toolbox.population(),toolbox,
                                 cxpb = 0, mutpb = hyperparams.mutation_rate,
                                 ngen = hyperparams.n_generations, verbose = False
                             )

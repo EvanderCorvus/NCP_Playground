@@ -10,8 +10,8 @@ a = tr.tensor([[1,2,3],[4,5,6]])
 b = tr.clamp(a,min=2,max=4)
 
 c = tr.tensor([True, False, True])
-d = tr.tensor([1,2,3])
-print(c+d)
+d = tr.tensor([1.,2.,3.])
+print(d.mean().item())
 
 '''
 state_dim = 5
