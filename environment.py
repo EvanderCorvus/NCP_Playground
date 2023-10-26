@@ -41,14 +41,9 @@ class BoxEnvironment:
         F_x, F_y = self.state[:,2], self.state[:,3]
         
         #thermal noise
-<<<<<<< HEAD
         noise = tr.normal(tr.zeros(self.hyperparams.agent_batch_size),
                           tr.ones(self.hyperparams.agent_batch_size))
         theta = theta + vorticity(x,t, self.hyperparams)*self.hyperparams.dt + np.sqrt(self.hyperparams.dt)*self.hyperparams.characteristic_length*noise
-=======
-        noise = np.random.normal(np.zeros(self.agent_batch_size), np.ones(self.agent_batch_size))
-        theta = theta + vorticity(x,t)*self.hyperparams.dt + np.sqrt(self.hyperparams.sdt)*self.hyperparams.characteristic_length*noise
->>>>>>> d23e4acfcdf6b803b932ea5ae3b06971b7e0b40c
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
@@ -58,11 +53,7 @@ class BoxEnvironment:
         v_y = e_y + F_y
         y_new = y + v_y*self.hyperparams.dt
 
-<<<<<<< HEAD
         F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.hyperparams.u0)
-=======
-        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.hyperparams.U0)
->>>>>>> d23e4acfcdf6b803b932ea5ae3b06971b7e0b40c
 
         inside_space = self.space.contains(x_new, y_new)
 
@@ -100,8 +91,4 @@ class BoxEnvironment:
         self.state = tr.zeros(hyperparams.agent_batch_size,
                                 hyperparams.state_dim
                             ).to(device)
-<<<<<<< HEAD
         self.state[:,0] = -0.5*tr.ones((hyperparams.agent_batch_size))
-=======
-        self.state[:,0] = -0.5*tr.ones((hyperparams.state_dim))
->>>>>>> d23e4acfcdf6b803b932ea5ae3b06971b7e0b40c

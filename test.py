@@ -56,7 +56,8 @@ plt.legend(handles=legend_handles, loc="upper right")
 
 plt.tight_layout()
 plt.show()
-'''from utils import *
+'''
+from utils import *
 import torch as tr
 hyperparams = Hyperparameters()
 toolbox = init_toolbox(hyperparams)

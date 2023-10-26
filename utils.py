@@ -54,7 +54,7 @@ def init_toolbox(hyperparams):
 
     toolbox = base.Toolbox()
 
-    toolbox.register('individual', tools.initIterate, creator.Individual, lambda: tools.initIterate, creator.Individual, lambda: init_genome()
+    toolbox.register('individual', tools.initIterate, creator.Individual, lambda: init_genome()
                     )
     toolbox.register('population', tools.initRepeat,
                     list, toolbox.individual,
