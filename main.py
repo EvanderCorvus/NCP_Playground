@@ -61,6 +61,7 @@ def episode_batch(individual):
     # Initialize the agent and target agent
     agent = DeepQ_LTC_NCP(individual, hyperparams).to(device)
     optimizer = tr.optim.Adam(agent.parameters(), lr = hyperparams.learning_rate)
+    optimizer = tr.optim.Adam(agent.parameters(), lr = hyperparams.lr)
     target_agent = DeepQ_LTC_NCP(individual, hyperparams).to(device)
     target_agent.load_state_dict(agent.state_dict())
     for p in target_agent.parameters():
