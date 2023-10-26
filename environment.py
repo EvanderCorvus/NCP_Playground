@@ -2,20 +2,14 @@
 import torch as tr
 from environment_utils import *
 
-def sinusoidal_flow(x, t, hyperparams):
-    omega = hyperparams.omega
-    k = hyperparams.k
-    U0 = hyperparams.u0
+def sinusoidal_flow(x, t, U0, omega, k):
 
     F_y = U0*tr.sin(k*x + omega*t)
     F_x = tr.zeros(F_y.shape)
 
     return F_x, F_y
 
-def vorticity(x, t, hyperparams):
-    omega = hyperparams.omega
-    k = hyperparams.k
-    U0 = hyperparams.u0
+def vorticity(x, t, omega, k, U0):
 
     vorticity = U0*k*tr.cos(k*x + omega*t)
     return vorticity
@@ -26,15 +20,20 @@ def vorticity(x, t, hyperparams):
 
 # Initializes all agents on the left side of the box
 class BoxEnvironment:
-    def __init__(self, hyperparams):
+    def __init__(self, hyperparams, device):
         self.state = None
         self.space = Box(hyperparams.width, hyperparams.height)
         self.goal = Circle2D(hyperparams.goal_radius, 
                             tr.tensor([hyperparams.goal_x, hyperparams.goal_y])
                         )
         self.hyperparams = hyperparams
-        # ToDo: Store hyperparam variables as attributes and as tensors in GPU!
-
+        self.dt = tr.tensor(hyperparams.dt).to(device)
+        self.characteristic_length = tr.tensor(hyperparams.characteristic_length).to(device)
+        self.U0 = tr.tensor(hyperparams.u0).to(device)
+        self.omega = tr.tensor(hyperparams.omega).to(device)
+        self.k = tr.tensor(hyperparams.k).to(device)
+        self.device = device
+        
     def step(self, action, t):
         x, y = self.state[:,0], self.state[:,1]
         theta = action
@@ -42,18 +41,18 @@ class BoxEnvironment:
         
         #thermal noise
         noise = tr.normal(tr.zeros(self.hyperparams.agent_batch_size),
-                          tr.ones(self.hyperparams.agent_batch_size))
-        theta = theta + vorticity(x,t, self.hyperparams)*self.hyperparams.dt + np.sqrt(self.hyperparams.dt)*self.hyperparams.characteristic_length*noise
+                          tr.ones(self.hyperparams.agent_batch_size)).to(self.device)
+        theta = theta + self.dt*vorticity(x,t, self.omega, self.k, self.U0) + tr.sqrt(self.dt)*self.characteristic_length*noise
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
-        x_new = x + v_x*self.hyperparams.dt
+        x_new = x + v_x*self.dt
 
         e_y = tr.sin(theta)
         v_y = e_y + F_y
-        y_new = y + v_y*self.hyperparams.dt
+        y_new = y + v_y*self.dt
 
-        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.hyperparams.u0)
+        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.U0, self.omega, self.k)
 
         inside_space = self.space.contains(x_new, y_new)
 

@@ -1,13 +1,16 @@
 import configparser
 import numpy as np
 from deap import base, creator, tools
+import torch as tr
 
 # Currently only works for floats, ints and lists
 
 class Hyperparameters:
-    def __init__(self, config_file = 'hyperparameters.ini'):
+    def __init__(self, config_file = '/home/weinmann/Evolutionary_Algorithm_RL/NCP_Playground/hyperparameters.ini'):
         config = configparser.ConfigParser()
         config.read(config_file)
+        if not config.read(config_file):
+            raise Exception("Could not read config file")
 
         for key in config['Hyperparameters']:
             try:
@@ -22,7 +25,11 @@ class Hyperparameters:
                         value = config['Hyperparameters'][key]
             setattr(self, key, value)
 
-
+class time:
+    def __init__(self, dt, episode_length, device):
+        self.t = tr.tensor(0).to(device)
+        self.dt = tr.tensor(dt).to(device)
+        self.episode_length = episode_length
 
 
 def init_genome():

@@ -5,7 +5,7 @@ from torch.nn import MSELoss
 def policy(q_values, hyperparams):
     if np.random.random() < hyperparams.epsilon:
         action_idx = tr.randint(hyperparams.act_dim,
-                                size = hyperparams.agent_batch_size)
+                                size = (hyperparams.agent_batch_size,))
     else:
         action_idx = tr.argmax(q_values, dim = 1)
 

@@ -15,7 +15,7 @@ tr.set_default_tensor_type(tr.FloatTensor)
 # Initialize Hyperparameters and DEAP toolbox
 hyperparams = Hyperparameters()
 toolbox = init_toolbox(hyperparams)
-environment = BoxEnvironment(hyperparams)
+environment = BoxEnvironment(hyperparams, device)
 
 
 # with ProcessPoolExecutor() as executor:
@@ -23,19 +23,19 @@ environment = BoxEnvironment(hyperparams)
 
 
 #ToDo: Decay epsilon ?
+dt = tr.tensor(hyperparams.dt).to(device)
 
-# episode should return an array of all the cumulative rewards for each individual
 def episode(agent, target_agent, optimizer):
     optimizer.zero_grad()
     environment.reset(hyperparams, device)
     state = environment.state
     h0 = None
     total_reward = 0
-    t = 0
+    t = tr.tensor(0).to(device)
     for _ in range(hyperparams.episode_length):
         q_values, h = agent(state, h0)
         action = policy(q_values, hyperparams)
-        next_state, reward, done = environment.step(action,t)
+        next_state, reward, done = environment.step(action, t)
         update_deepQ(agent, target_agent, 
                     (q_values, h, reward, next_state, done)
                     )
@@ -47,7 +47,7 @@ def episode(agent, target_agent, optimizer):
         h = h.detach()
         h0 = h
         state = next_state
-        t += hyperparams.dt
+        t += dt
 
         # Average reward over the batch
         total_reward += reward.mean().item()
