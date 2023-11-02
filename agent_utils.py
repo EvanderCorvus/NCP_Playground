@@ -17,7 +17,7 @@ def policy(q_values, hyperparams, device):
     return angle
 
 
-def update_deepQ(agent, target_agent, transition, hyperparams):
+def update_deepQ_LTC(agent, target_agent, transition, hyperparams):
     Q1, h, reward, next_state, done = transition
     prediction = tr.max(Q1, dim = 1)[0]
 
@@ -33,3 +33,14 @@ def update_target_agent(agent, target_agent, polyak_tau):
         for p, p_target in zip(agent.parameters(), target_agent.parameters()):
             p_target.data.mul_(polyak_tau)
             p_target.data.add_((1-polyak_tau) * p.data)
+
+def update_deepQ(agent, target_agent, transition, hyperparams):
+    Q1, reward, next_state, done = transition
+    prediction = tr.max(Q1, dim = 1)[0]
+
+    Q2 = tr.max(target_agent(next_state)[0])
+    target = reward + hyperparams.future_discount * Q2 * (1-done.int())
+    if prediction.shape != target.shape:
+        raise Exception("prediction shape:", prediction.shape, "target shape:", target.shape)
+    loss = MSELoss()(prediction, target)
+    loss.backward()

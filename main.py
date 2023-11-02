@@ -3,7 +3,7 @@ import torch as tr
 from utils import *
 from agents import DeepQ_LTC_NCP
 from deap import algorithms
-from agent_utils import policy, update_deepQ, update_target_agent
+from agent_utils import policy, update_deepQ, update_deepQ_LTC, update_target_agent
 from environment import BoxEnvironment
 
 device = tr.device('cuda' if tr.cuda.is_available() else 'cpu')
@@ -36,7 +36,7 @@ def episode(agent, target_agent, optimizer):
         q_values, h = agent(state, h0)
         action = policy(q_values, hyperparams, device)
         next_state, reward, done = environment.step(action, t)
-        update_deepQ(agent, target_agent, 
+        update_deepQ_LTC(agent, target_agent, 
                     (q_values, h, reward, next_state, done),
                     hyperparams
                     )

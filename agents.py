@@ -25,6 +25,24 @@ class DeepQ_LTC_NCP(nn.Module):
         return x.squeeze(1), h
         
 
+class DeepQ(nn.Module):
+    def __init__(self, hyperparams, genome):
+        super(DeepQ, self).__init__()
+        num_layers = genome[0]
+        hidden_dim = genome[1]
+        layers = [nn.Linear(hyperparams.state_dim, hidden_dim), nn.ReLU()]
+        for i in range(num_layers):
+            layers += [nn.Linear(hidden_dim, hidden_dim), nn.ReLU()]
+        self.fc = nn.Sequential(*layers, 
+                                nn.Linear(hidden_dim, hyperparams.act_dim)
+                            )
+        
+    def forward(self, state):
+        return self.fc(state)
+        
+
+
+
 # This Class implements a parallel forward operation for the entire population
 class DeepQ_Population(nn.Module):
     def __init__(self, hyperparams):
