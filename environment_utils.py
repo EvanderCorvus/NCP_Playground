@@ -44,7 +44,7 @@ class Circle2D():
             self.center = center.to(device)
 
     def contains(self, x, y):
-        bool = tr.sqrt((x-self.center[:,0])**2 + (y-self.center[:,1])**2) < self.radius
+        bool = tr.sqrt((x-self.center[0])**2 + (y-self.center[1])**2) < self.radius
         return bool
     
     def sample(self):

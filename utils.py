@@ -4,9 +4,9 @@ from deap import base, creator, tools
 import torch as tr
 
 # Currently only works for floats, ints and lists
-
+#/home/weinmann/Evolutionary_Algorithm_RL/NCP_Playground/
 class Hyperparameters:
-    def __init__(self, config_file = '/home/weinmann/Evolutionary_Algorithm_RL/NCP_Playground/hyperparameters.ini'):
+    def __init__(self, config_file = 'hyperparameters.ini'):
         config = configparser.ConfigParser()
         config.read(config_file)
         if not config.read(config_file):

@@ -8,7 +8,9 @@ ind = toolbox.individual()
 
 a = tr.zeros(size=(3,))
 print(a.shape[0])
-
+a = tr.tensor([True, False, False])
+b = 1-a.int()
+print(b)
 
 '''
 state_dim = 5

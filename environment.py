@@ -55,7 +55,7 @@ class BoxEnvironment:
         F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.U0, self.omega, self.k)
 
         inside_space = self.space.contains(x_new, y_new)
-
+        done = tr.logical_not(inside_space)
         # No-slip boundary
         self.state[:,0] = tr.clamp(x_new, min=-self.hyperparams.width/2,
                                    max=self.hyperparams.width/2)
@@ -67,12 +67,12 @@ class BoxEnvironment:
 
         reward = self.reward(self.dt, inside_space)
 
-        return reward
+        return self.state, reward, done
     
     def reward(self, dt, inside_space):
         # Compute reward
         not_inside_space = tr.logical_not(inside_space)
-        reward = -dt*tr.ones(self.state.shape[0])
+        reward = -dt*tr.ones(self.state.shape[0]).to(self.device)
         wincondition = self.goal_check()
         reward += wincondition*1
         reward -= not_inside_space*0.5
@@ -82,7 +82,7 @@ class BoxEnvironment:
     def goal_check(self):
         x = self.state[:, 0]
         y = self.state[:, 1]
-        wincondition = self.goal.contains(x,y)
+        wincondition = self.goal.contains(x,y).to(self.device)
         return wincondition
 
 

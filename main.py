@@ -34,10 +34,11 @@ def episode(agent, target_agent, optimizer):
     t = tr.tensor(0).to(device)
     for _ in range(hyperparams.episode_length):
         q_values, h = agent(state, h0)
-        action = policy(q_values, hyperparams)
+        action = policy(q_values, hyperparams, device)
         next_state, reward, done = environment.step(action, t)
         update_deepQ(agent, target_agent, 
-                    (q_values, h, reward, next_state, done)
+                    (q_values, h, reward, next_state, done),
+                    hyperparams
                     )
         update_target_agent(agent, target_agent,
                             hyperparams.polyak_tau
@@ -51,7 +52,7 @@ def episode(agent, target_agent, optimizer):
 
         # Average reward over the batch
         total_reward += reward.mean().item()
-        if done: break
+        if tr.max(done).item(): break
     return total_reward
 
 def episode_batch(individual):
