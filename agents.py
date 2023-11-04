@@ -38,7 +38,7 @@ class DeepQ(nn.Module):
                             )
         
     def forward(self, state):
-        
+        # if not state.requires_grad: raise Exception("state doesn't require grad")
         if tr.isnan(state).any() or tr.isinf(state).any(): raise Exception("state is nan")
         return self.fc(state)
         

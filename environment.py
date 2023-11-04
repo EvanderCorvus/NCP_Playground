@@ -65,7 +65,7 @@ class BoxEnvironment:
         self.state[:,4] = theta
 
         reward = self.reward(self.dt, inside_space)
-
+        # self.state = self.state.detach()
         return self.state, reward, done
     
     def reward(self, dt, inside_space):

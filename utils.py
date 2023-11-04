@@ -33,8 +33,8 @@ class time:
 
 
 def init_genome():
-    sensory_dim = np.random.randint(11, 50)
-    hidden_dim = np.random.randint(11, 50)
+    sensory_dim = np.random.randint(1, 4)
+    hidden_dim = np.random.randint(8, 64)
     # lr = np.random.uniform(0.0001, 0.1)
     # lr_decay = np.random.uniform(0.5, 0.99)
 
