@@ -26,18 +26,20 @@ class DeepQ_LTC_NCP(nn.Module):
         
 
 class DeepQ(nn.Module):
-    def __init__(self, hyperparams, genome):
+    def __init__(self, genome, hyperparams,):
         super(DeepQ, self).__init__()
         num_layers = genome[0]
         hidden_dim = genome[1]
-        layers = [nn.Linear(hyperparams.state_dim, hidden_dim), nn.ReLU()]
+        layers = [nn.Linear(hyperparams.state_dim, hidden_dim), nn.LeakyReLU()]
         for i in range(num_layers):
-            layers += [nn.Linear(hidden_dim, hidden_dim), nn.ReLU()]
+            layers += [nn.Linear(hidden_dim, hidden_dim), nn.LeakyReLU()]
         self.fc = nn.Sequential(*layers, 
                                 nn.Linear(hidden_dim, hyperparams.act_dim)
                             )
         
     def forward(self, state):
+        
+        if tr.isnan(state).any() or tr.isinf(state).any(): raise Exception("state is nan")
         return self.fc(state)
         
 

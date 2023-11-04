@@ -1,6 +1,5 @@
 import numpy as np
 import torch as tr
-from torch.nn import MSELoss
 
 def policy(q_values, hyperparams, device):
     if np.random.random() < hyperparams.epsilon:
@@ -17,15 +16,15 @@ def policy(q_values, hyperparams, device):
     return angle
 
 
-def update_deepQ_LTC(agent, target_agent, transition, hyperparams):
+def update_deepQ_LTC(agent, target_agent, transition, criterion, hyperparams):
     Q1, h, reward, next_state, done = transition
     prediction = tr.max(Q1, dim = 1)[0]
-
+    finished = 1-done.int()
     Q2 = tr.max(target_agent(next_state,h)[0])
-    target = reward + hyperparams.future_discount * Q2 * (1-done.int())
+    target = reward + hyperparams.future_discount * Q2 * finished
     if prediction.shape != target.shape:
         raise Exception("prediction shape:", prediction.shape, "target shape:", target.shape)
-    loss = MSELoss()(prediction, target)
+    loss = criterion(prediction, target)
     loss.backward()
 
 def update_target_agent(agent, target_agent, polyak_tau):
@@ -34,7 +33,7 @@ def update_target_agent(agent, target_agent, polyak_tau):
             p_target.data.mul_(polyak_tau)
             p_target.data.add_((1-polyak_tau) * p.data)
 
-def update_deepQ(agent, target_agent, transition, hyperparams):
+def update_deepQ(agent, target_agent, transition, criterion, hyperparams):
     Q1, reward, next_state, done = transition
     prediction = tr.max(Q1, dim = 1)[0]
 
@@ -42,5 +41,5 @@ def update_deepQ(agent, target_agent, transition, hyperparams):
     target = reward + hyperparams.future_discount * Q2 * (1-done.int())
     if prediction.shape != target.shape:
         raise Exception("prediction shape:", prediction.shape, "target shape:", target.shape)
-    loss = MSELoss()(prediction, target)
+    loss = criterion(prediction, target)
     loss.backward()

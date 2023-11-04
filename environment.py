@@ -36,13 +36,12 @@ class BoxEnvironment:
         
     def step(self, action, t):
         x, y = self.state[:,0], self.state[:,1]
-        theta = action
         F_x, F_y = self.state[:,2], self.state[:,3]
         
         #thermal noise
         noise = tr.normal(tr.zeros(self.hyperparams.agent_batch_size),
                           tr.ones(self.hyperparams.agent_batch_size)).to(self.device)
-        theta = theta + self.dt*vorticity(x,t, self.omega, self.k, self.U0) + tr.sqrt(self.dt)*self.characteristic_length*noise
+        theta = action + self.dt*vorticity(x, t, self.omega, self.k, self.U0) + tr.sqrt(self.dt)*self.characteristic_length*noise
 
         e_x = tr.cos(theta)
         v_x = e_x + F_x
@@ -52,7 +51,7 @@ class BoxEnvironment:
         v_y = e_y + F_y
         y_new = y + v_y*self.dt
 
-        F_x_new, F_y_new = sinusoidal_flow(x_new, y_new, self.U0, self.omega, self.k)
+        F_x_new, F_y_new = sinusoidal_flow(x_new, t, self.U0, self.omega, self.k)
 
         inside_space = self.space.contains(x_new, y_new)
         done = tr.logical_not(inside_space)
@@ -74,8 +73,8 @@ class BoxEnvironment:
         not_inside_space = tr.logical_not(inside_space)
         reward = -dt*tr.ones(self.state.shape[0]).to(self.device)
         wincondition = self.goal_check()
-        reward += wincondition*1
-        reward -= not_inside_space*0.5
+        reward = reward + wincondition*1
+        reward = reward - not_inside_space*0.5
 
         return reward
     
